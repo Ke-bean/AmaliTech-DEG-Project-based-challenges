@@ -7,13 +7,20 @@ import java.util.concurrent.ConcurrentHashMap;
 public class IdempotencyService {
     private final ConcurrentHashMap<String, PaymentRecord> store = new ConcurrentHashMap<>();
 
-    public PaymentRecord getOrLock(String key, PaymentRequest request) {
-      
-        return store.compute(key, (k, existing) -> {
-            if (existing == null) {
+    public PaymentRecord getOrLock(String key, PaymentRequest request) throws Exception {
+        PaymentRecord existing = store.get(key);
+        
+        if (existing != null) {
+            if (!existing.getRequest().equals(request)) {
+                throw new Exception("409 Conflict: Idempotency key already used for a different request body.");
+            }
+        }
+
+        return store.compute(key, (k, record) -> {
+            if (record == null) {
                 return new PaymentRecord(PaymentRecord.Status.IN_PROGRESS, request);
             }
-            return existing;
+            return record;
         });
     }
 
