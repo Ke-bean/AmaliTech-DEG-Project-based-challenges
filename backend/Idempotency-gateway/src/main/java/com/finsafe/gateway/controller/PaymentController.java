@@ -4,6 +4,7 @@ import com.finsafe.gateway.model.*;
 import com.finsafe.gateway.service.IdempotencyService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -18,34 +19,35 @@ public class PaymentController implements HttpHandler {
                 sendResponse(exchange, 400, "Missing Idempotency-Key");
                 return;
             }
-    
-           
-            PaymentRequest request = new PaymentRequest(100, "GHS"); 
-            PaymentRecord record = idService.getOrLock(key, request);
+
+            InputStream is = exchange.getRequestBody();
+            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             
+            int amount = 100; 
+            if (body.contains("\"amount\":")) {
+                String val = body.split("\"amount\":")[1].split("}")[0].trim();
+                amount = Integer.parseInt(val);
+            }
+            PaymentRequest request = new PaymentRequest(amount, "GHS");
+
+            PaymentRecord record = idService.getOrLock(key, request);
+
             synchronized (record) {
-              
                 if (record.getStatus() == PaymentRecord.Status.COMPLETED) {
                     exchange.getResponseHeaders().add("X-Cache-Hit", "true");
                     sendResponse(exchange, 200, record.getResponse());
                     return;
                 }
-    
-             
-                if (record.getStatus() == PaymentRecord.Status.IN_PROGRESS) {
-                   
-                }
-    
-                
-                Thread.sleep(2000);
-                String result = "Charged 100 GHS";
+
+                String result = "Charged " + request.getAmount() + " " + request.getCurrency();
                 
                 idService.complete(key, result);
                 sendResponse(exchange, 200, result);
             }
         } catch (Exception e) {
-            e.printStackTrace(); 
-            try { sendResponse(exchange, 500, "Internal Error"); } catch (Exception ex) {}
+            String message = e.getMessage();
+            int status = (message != null && message.contains("409")) ? 409 : 500;
+            try { sendResponse(exchange, status, message != null ? message : "Internal Error"); } catch (Exception ignored) {}
         }
     }
 
