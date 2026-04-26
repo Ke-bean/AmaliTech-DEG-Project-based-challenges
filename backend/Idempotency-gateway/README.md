@@ -80,7 +80,7 @@ Responses:
 
    Send a POST request with header Idempotency-Key: test-123.
 
-   Observe the 200 OK response and a ~2-second delay.
+   Observe the 200 OK response and a 2-seconds delay.
 
 2. Idempotency Test
 
@@ -97,5 +97,17 @@ Responses:
    Send a request with Idempotency-Key: test-123 but change the body to {"amount": 500}.
 
    Observe the 409 Conflict error.
+
+### Developer's Choice: Automated Memory Management
+
+In a high-throughput payment gateway, storing idempotency keys in memory presents a significant risk: Memory Leaks. Without a cleanup strategy, the system would eventually crash with an OutOfMemoryError after processing millions of transactions.
+
+Implementation Details:
+
+    What I did: I implemented a task that runs a background task every hour.
+
+    Why I did it: This task performs an "eviction" operation, scanning the memory and removing any records that have been in the system for longer than 24 hours (using Instant timestamps).
+
+    Engineering Impact: By moving this logic to a background thread, I ensured the cleanup process does not block the critical request path, maintaining low latency for incoming payments while ensuring the service remains stable indefinitely.
 
 ##### Thank you!!
