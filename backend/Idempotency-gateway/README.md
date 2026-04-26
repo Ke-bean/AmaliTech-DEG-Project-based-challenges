@@ -104,7 +104,7 @@ In a high-throughput payment gateway, storing idempotency keys in memory present
 
 Implementation Details:
 
-    What I did: I implemented a task that runs a background task every hour.
+    What I did: I implemented a method that runs a background task every hour.
 
     Why I did it: This task performs an "eviction" operation, scanning the memory and removing any records that have been in the system for longer than 24 hours (using Instant timestamps).
 
