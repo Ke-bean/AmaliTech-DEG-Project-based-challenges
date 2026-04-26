@@ -10,22 +10,22 @@ public class PaymentController {
         PaymentRecord record = idService.getOrLock(key, request);
 
         synchronized (record) {
-            // 1. Handle In-Flight: Wait until processing is finished
+           
             while (record.getStatus() == PaymentRecord.Status.IN_PROGRESS) {
                 record.wait(); 
             }
 
-            // 2. Handle Duplicate Completed Request
+           
             if (record.getStatus() == PaymentRecord.Status.COMPLETED) {
                 return "X-Cache-Hit: true | " + record.getResponse();
             }
 
-            // 3. New Request: Process payment
-            Thread.sleep(2000); // Simulate processing
+           
+            Thread.sleep(2000); 
             String result = "Charged " + request.getAmount() + " " + request.getCurrency();
             
             idService.complete(key, result);
-            record.notifyAll(); // Wake up any waiting threads
+            record.notifyAll(); 
             return result;
         }
     }
