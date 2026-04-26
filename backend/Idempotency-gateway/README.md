@@ -12,8 +12,6 @@ A lightweight, production-ready Idempotency Gateway built with pure Java (JDK 18
 
     Self-Healing: Built-in TTL (Time-To-Live) cleanup mechanism using a background scheduler to prevent memory leaks.
 
-    Zero-Framework: Built using native com.sun.net.httpserver to demonstrate core understanding of Java networking.
-
 ### Architecture Diagram
 
 The following sequence diagram illustrates the request lifecycle, including the "In-Flight" locking mechanism to prevent race conditions.
