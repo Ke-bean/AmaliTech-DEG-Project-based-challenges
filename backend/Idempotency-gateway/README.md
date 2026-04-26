@@ -108,6 +108,6 @@ Implementation Details:
 
     Why I did it: This task performs an "eviction" operation, scanning the memory and removing any records that have been in the system for longer than 24 hours (using Instant timestamps).
 
-    Engineering Impact: By moving this logic to a background thread, I ensured the cleanup process does not block the critical request path, maintaining low latency for incoming payments while ensuring the service remains stable indefinitely.
+    Engineering Impact: By moving this logic to a background thread, I ensured the cleanup process does not block the critical request path, maintaining low latency for incoming payments while ensuring the service remains stable.
 
 ##### Thank you!!
